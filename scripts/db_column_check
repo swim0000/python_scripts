@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import sys
 
 db_url = None
 db_user = None
@@ -13,4 +14,49 @@ def set_database_credentials():
 
     if not db_url or not db_user or not db_password:
         raise ValueError("Database credentials not found in environment variables.")
+    
+def query_database(column, value):
+    set_database_credentials()
+
+    try:
+        conn = psycopg2.connect(
+            dbname=db_url,
+            user=db_user,
+            password=db_password,
+            host='postgres_staging',  
+            port=5432  
+        )
+
+        cursor = conn.cursor()
+
+        query = f"SELECT * FROM your_table WHERE {column} = %s"
+        cursor.execute(query, (value,))
+
+        rows = cursor.fetchall()
+
+        if rows:
+            print("Success: Records found.")
+            sys.exit(0)
+        else:
+            print("Failure: No records found.")
+            sys.exit(1)
+
+    except psycopg2.Error as e:
+        print(f"Error connecting to the database: {e}")
+        sys.exit(1)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+if __name__ == "__main__":
+    column = os.environ.get('GITHUB_COLUMN')
+    value = os.environ.get('GITHUB_VALUE')
+
+    if not column or not value:
+        print("Error: Column or value not provided.")
+        sys.exit(1)
+
+    query_database(column, value)
     
