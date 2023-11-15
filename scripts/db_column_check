@@ -1,0 +1,16 @@
+import os
+import psycopg2
+
+db_url = None
+db_user = None
+db_password = None
+
+def set_database_credentials():
+    global db_url, db_user, db_password
+    db_url = os.environ.get('DB_URL')
+    db_user = os.environ.get('DB_USER')
+    db_password = os.environ.get('DB_PASSWORD')
+
+    if not db_url or not db_user or not db_password:
+        raise ValueError("Database credentials not found in environment variables.")
+    
